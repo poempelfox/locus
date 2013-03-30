@@ -5,12 +5,16 @@
 
 package org.inrain.pmap;
 
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -32,6 +36,7 @@ public class ProjectMapActivity extends Activity {
 	private TextView     userText;
 	private EditText     updateTickText;
 	private Button       saveButton;
+	private Button		 qrscanButton;
 	
 	public static void debug(Context ctx, String msg) {
 		Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
@@ -56,6 +61,7 @@ public class ProjectMapActivity extends Activity {
         userText       = (TextView)     findViewById(R.id.userText);
         updateTickText = (EditText)     findViewById(R.id.updateTickText);
         saveButton     = (Button)       findViewById(R.id.saveButton);
+        qrscanButton   = (Button)       findViewById(R.id.qrscanButton);
         
         // restore preferences
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -68,11 +74,31 @@ public class ProjectMapActivity extends Activity {
         updateTickText.setText(String.format("%d", updateTick));
         
         saveButton.setOnClickListener(mCorkyListener); // TODO
+        qrscanButton.setOnClickListener(qrsbListener);
         /*mapButton.setOnClickListener(mapButtonClickListener);
         serviceButton.setChecked(ProjectMapService.running);
         serviceButton.setOnClickListener(serviceButtonClickListener);
         setupButtons();*/
     }
+    
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+    	  IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
+    	  if (scanResult != null) { // handle scan result
+    	      String contents = scanResult.getContents();
+    	      if (contents != null) {
+    	    	  Log.d("locus", "Scanned: " + contents);
+    	    	  String spl[] = contents.split("!");
+    	    	  for (int i = 0; i < spl.length; i++) {
+    	    		  String nv[] = spl[i].split("=", 2);
+    	    		  if (nv.length != 2) { continue; }
+    	    		  if (nv[0].equals("url")) { serverText.setText(nv[1]); }
+    	    		  if (nv[0].equals("username")) { userText.setText(nv[1]); }
+    	    	  }
+    	    	  //Toast.makeText(ProjectMapActivity.this, "Scanresult!" + contents, Toast.LENGTH_LONG).show();
+    	      }
+    	  }
+    	  // Nothing else to do right now?
+	}
     
     /*private OnClickListener serviceButtonClickListener = new OnClickListener() {
         public void onClick(View view) {
@@ -112,6 +138,13 @@ public class ProjectMapActivity extends Activity {
             editor.commit();
             
             //setupButtons();
+        }
+    };
+
+    private OnClickListener qrsbListener = new OnClickListener() {
+        public void onClick(View view) {
+        	IntentIntegrator integrator = new IntentIntegrator(ProjectMapActivity.this);
+        	integrator.initiateScan();
         }
     };
 }
