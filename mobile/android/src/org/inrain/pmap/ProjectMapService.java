@@ -153,9 +153,6 @@ public class ProjectMapService extends Service {
     
     private void update(Location location, List<ScanResult> accessPoints) {
         String msg;
-        HttpClient client = new DefaultHttpClient();
-        HttpResponse response;
-        HttpPost request = new HttpPost();
         
         String accessPointsJson = "";
         if (accessPoints != null) {
@@ -171,82 +168,29 @@ public class ProjectMapService extends Service {
             }
             accessPointsJson = "[" + accessPointsJson + "]";
         }
-       // Log.d("locus", accessPointsJson);
-        
+        // Log.d("locus", accessPointsJson);
+        Util util = new Util(serverUrl);
         try {
+            util.call("/location/", Arrays.asList(new BasicNameValuePair[] {
+            	new BasicNameValuePair("username",  user),
+                new BasicNameValuePair("latitude",  Double.toString(location.getLatitude())),
+                new BasicNameValuePair("longitude", Double.toString(location.getLongitude())),
+                new BasicNameValuePair("accuracy",  Double.toString(location.getAccuracy())),
+                new BasicNameValuePair("provider",  location.getProvider()),
+                ((accessPoints != null)
+                    ? new BasicNameValuePair("accesspoints", accessPointsJson)
+                	: new BasicNameValuePair("accesspoints", ""))
+            }));
             
-            // TODO: move somewhere else
-            String url = serverUrl;
-            if (!url.endsWith("/")) {
-                url += "/";
-            }
-            
-            request.setURI(new URI(String.format(
-                "%sapi/location/",
-                url
-            )));
-            
-            
-            ArrayList<BasicNameValuePair> data = new ArrayList<BasicNameValuePair>();
-            //List<BasicNameValuePair> data = Arrays.asList(new BasicNameValuePair[] {
-            data.add(new BasicNameValuePair("username",  user));
-            data.add(new BasicNameValuePair("latitude",  Double.toString(location.getLatitude())));
-            data.add(new BasicNameValuePair("longitude", Double.toString(location.getLongitude())));
-            data.add(new BasicNameValuePair("accuracy",  Double.toString(location.getAccuracy())));
-            data.add(new BasicNameValuePair("provider",  "network"));
-            //});
-            if (accessPoints != null) {
-                data.add(new BasicNameValuePair("accesspoints", accessPointsJson));
-            }
-            request.setEntity(new UrlEncodedFormEntity(data));
-            
-            try {
-                Log.d("locus", request.getURI().toString());
-                Log.d("locus", EntityUtils.toString(request.getEntity()));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-//            
-//            URI uri = new URI(
-//                String.format(
-//                    "%s/api/location/?username=%s&latitude=%f&longitude=%f&accuracy=%f&provider=x",
-//                    serverUrl,
-//                    user,
-//                    location.getLatitude(),
-//                    location.getLongitude(),
-//                    location.getAccuracy()
-//                )
-//            );
-//            counter++;
-//            //ProjectMapActivity.debug(this, counter + " " + uri.toString());
-//            request.setURI(uri);
-        } catch (URISyntaxException e) {
-            // TODO
-            ProjectMapActivity.debug(this, "fuck application bug!!" + e.toString());
-            return;
-        } catch (UnsupportedEncodingException e) {
-            // TODO
-            ProjectMapActivity.debug(this, "fuck application bug!!" + e.toString());
-    	    return;
-        }
-        
-        try {
-            response = client.execute(request);
-            int code = response.getStatusLine().getStatusCode();
-            if (code == 200) {
-                failed = 0;
-                msg = "last update: " +
+            msg = "last update: " +
                     DateFormat.getTimeInstance().format(new Date());
-            } else {
-                failed++;
-                msg = String.format("error (%d): HTTP %d", failed, code);
-            }
-		} catch (IOException e) {
+            failed = 0;
+        } catch (IOException e) {
 		    failed++;
 		    msg = String.format("error (%d): %s", failed, e.toString());
-		}
+        }
         
-        if (failed == 0 || failed > 3) {
+        if ((failed == 0) || (failed > 3)) {
             nextUpdate = System.currentTimeMillis() + updateTick * 1000;
         } else {
             nextUpdate = System.currentTimeMillis() + failed * 60 * 1000;
@@ -293,5 +237,5 @@ public class ProjectMapService extends Service {
         public void onStatusChanged(String provider, int status, Bundle extras) {}
         public void onProviderEnabled(String provider) {}
         public void onProviderDisabled(String provider) {}
-     };
+    };
 }
