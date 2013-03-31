@@ -63,6 +63,7 @@ public class LocusActivity extends Activity {
         super.onResume();
         settings = getSharedPreferences(ProjectMapActivity.PREFS_NAME, 0);
         String serverUrl = settings.getString("serverUrl", "");
+        String user      = settings.getString("user",      "");
         
         TextView setupLabel = (TextView) findViewById(R.id.setupLabel);
         WebView  webView    = (WebView)  findViewById(R.id.webView);
@@ -76,7 +77,7 @@ public class LocusActivity extends Activity {
                 webView.setWebViewClient(client);
                 WebSettings webSettings = webView.getSettings();
                 webSettings.setJavaScriptEnabled(true);
-                webView.loadUrl(serverUrl);
+                webView.loadUrl(serverUrl + "?username=" + user);
             }
         }
     }
