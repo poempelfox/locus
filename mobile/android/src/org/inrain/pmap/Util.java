@@ -72,7 +72,7 @@ public class Util {
             HttpResponse response = client.execute(request);
             int code = response.getStatusLine().getStatusCode();
             if (code != 200) {
-                throw new IOException("http" + Integer.toString(code));
+                throw new IOException("http-error-" + Integer.toString(code));
             }
         } catch (URISyntaxException e) {
             e.printStackTrace();
