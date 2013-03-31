@@ -87,14 +87,23 @@ public class ProjectMapActivity extends Activity {
     	      String contents = scanResult.getContents();
     	      if (contents != null) {
     	    	  Log.d("locus", "Scanned: " + contents);
-    	    	  String spl[] = contents.split("!");
-    	    	  for (int i = 0; i < spl.length; i++) {
-    	    		  String nv[] = spl[i].split("=", 2);
-    	    		  if (nv.length != 2) { continue; }
-    	    		  if (nv[0].equals("url")) { serverText.setText(nv[1]); }
-    	    		  if (nv[0].equals("username")) { userText.setText(nv[1]); }
+    	    	  if (contents.startsWith("http")) { // just the serverurl then
+    	    		  serverText.setText(contents);
+    	    	  } else {
+    	    		  String spl[] = contents.split("!");
+    	    		  boolean hadsucc = false;
+    	    		  for (int i = 0; i < spl.length; i++) {
+    	    			  String nv[] = spl[i].split("=", 2);
+    	    			  if (nv.length != 2) { continue; }
+    	    			  if (nv[0].equals("url")) { serverText.setText(nv[1]); hadsucc = true; }
+    	    			  if (nv[0].equals("username")) { userText.setText(nv[1]); hadsucc = true; }
+    	    		  }
+    	    		  if (!hadsucc) {
+    	    			  Toast.makeText(ProjectMapActivity.this,
+    	    					  "Sorry, scanned settings could not be parsed.",
+    	    					  Toast.LENGTH_LONG).show();
+    	    		  }
     	    	  }
-    	    	  //Toast.makeText(ProjectMapActivity.this, "Scanresult!" + contents, Toast.LENGTH_LONG).show();
     	      }
     	  }
     	  // Nothing else to do right now?
@@ -138,6 +147,7 @@ public class ProjectMapActivity extends Activity {
             editor.commit();
             
             //setupButtons();
+            Toast.makeText(ProjectMapActivity.this, "Settings saved.", Toast.LENGTH_SHORT).show();
         }
     };
 
