@@ -28,6 +28,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.net.http.SslError;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -35,6 +36,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -193,6 +195,28 @@ public class LocusActivity extends Activity {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             startActivity(intent);
             return true;*/
+        }
+        private SslErrorHandler javadrecksgefrickel;  // Workaround to be able to access the "handler" variable
+        public void onReceivedSslError (WebView view, SslErrorHandler handler, SslError error) {
+            Log.d("locus", "SSL Error: " + error.getPrimaryError());
+            if (error.hasError(android.net.http.SslError.SSL_UNTRUSTED)) {
+                Log.d("locus", "SSL certificate is also untrused.");
+            }
+            javadrecksgefrickel = handler;
+            new AlertDialog.Builder(LocusActivity.this)
+                           .setTitle("SSL Error! Continue?")
+                           .setMessage("There was an error with the certificate... FIXME")
+                           .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                              public void onClick(DialogInterface dialog, int which) { 
+                                javadrecksgefrickel.proceed();
+                              }
+                           })
+                           .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                              public void onClick(DialogInterface dialog, int which) { 
+                                javadrecksgefrickel.cancel();
+                              }
+                           })
+                           .show();
         }
     };
 }
