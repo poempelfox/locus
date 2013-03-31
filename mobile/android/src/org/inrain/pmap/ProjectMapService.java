@@ -150,8 +150,6 @@ public class ProjectMapService extends Service {
         return null;
     }
     
-    private int counter = 0;
-    
     private void update(Location location) {
         update(location, null);
     }
@@ -215,13 +213,11 @@ public class ProjectMapService extends Service {
     
     private LocationListener locationListener = new LocationListener() {
         public void onLocationChanged(Location location) {
-            Log.d("locus", "onLocationChanged");
+            Log.d("locus", "onLocationChanged to lat " + location.getLatitude() + "/lon " + location.getLongitude());
             
             // record the best location in the update time window (updateTick)
-            if (
-                bestLocation == null ||
-                location.getAccuracy() <= bestLocation.getAccuracy()
-            ) {
+            if ((bestLocation == null)
+             || (location.getAccuracy() <= bestLocation.getAccuracy())) {
                 bestLocation = location;
             }
             
