@@ -20,4 +20,9 @@
     <string name="name">Name</string>
     <string name="cancel">Cancel</string>
     <string name="qrscanButton">Scan settings from QR code</string>
+    <string name="useNetworkLocationLabel">Use network location</string>
+    <string name="useGPSLocationLabel">Use GPS Location</string>
+    <string name="errormsg_needalocationsource">ERROR: You need to enable at least one of the Network/GPS location checkboxes</string>
+    <string name="errormsg_invalidurl_nohttp">ERROR: URL needs to start with http:// or https://</string>
+    <string name="toastmsg_settings_saved">Settings saved.</string>
 </resources>

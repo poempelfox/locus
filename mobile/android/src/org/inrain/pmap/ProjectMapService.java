@@ -49,9 +49,11 @@ public class ProjectMapService extends Service {
     
     public static boolean running = false;
     
-    private String serverUrl;
-    private String user;
-    private int    updateTick;
+    private String  serverUrl;
+    private String  user;
+    private int     updateTick;
+    private boolean useNetLocation;
+    private boolean useGPSLocation;
     
     private LocationManager     locationManager;
     private WifiManager         wifiManager;
@@ -83,6 +85,8 @@ public class ProjectMapService extends Service {
         serverUrl  = settings.getString("serverUrl", "");
         user       = settings.getString("user", "");
         updateTick = settings.getInt("updateTick", 300);
+        useNetLocation = settings.getBoolean("useNetLocation", true);
+        useGPSLocation = settings.getBoolean("useGPSLocation", true);
         
         Intent notificationIntent = new Intent(this, LocusActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -108,13 +112,8 @@ public class ProjectMapService extends Service {
             Toast.makeText(this, "To enable indoor-tracking please activate Wifi.", Toast.LENGTH_LONG).show();
         }
         
-        // DEBUG
-        //String locationProvider = LocationManager.GPS_PROVIDER;
-        // RELEASE
-        String locationProvider = LocationManager.NETWORK_PROVIDER;
-        
         /*Location location = locationManager.getLastKnownLocation(
-            locationProvider
+            LocationManager.NETWORK_PROVIDER
         );
         if (location != null) {
             update(location, wifiManager.getScanResults());
@@ -122,12 +121,18 @@ public class ProjectMapService extends Service {
         // ^ this will block the ui; don't do this here; onLocationChanged will
         // be called soon enough
         
-        locationManager.requestLocationUpdates(
-            locationProvider,
-            0,
-            0,
-            locationListener
-        );
+        // If we want both NETWORK and GPS based location updates,
+        // we just have to call requestLocationUpdates twice.
+        if (useNetLocation) {
+            locationManager.requestLocationUpdates(
+                LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+        }
+        if (useGPSLocation) {
+            // For GPS do not request too many updates - will drain battery in no time.
+            // Twice in every update interval should be enough.
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER, updateTick * 1000 / 2, 0, locationListener);
+        }
         
         // we should not be killed (foreground)
         return START_STICKY;

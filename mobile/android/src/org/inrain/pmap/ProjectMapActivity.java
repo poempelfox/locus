@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,9 +27,11 @@ import android.widget.ToggleButton;
 public class ProjectMapActivity extends Activity {
 	public static final String PREFS_NAME = "MyPrefsFile"; // TODO
 	
-	private String serverUrl;
-	private String user;
-	private int    updateTick;
+	private String  serverUrl;
+	private String  user;
+	private int     updateTick;
+	private boolean useNetLocation;
+	private boolean useGPSLocation;
 	
     //private Button       mapButton;
 	//private ToggleButton serviceButton;
@@ -37,6 +40,8 @@ public class ProjectMapActivity extends Activity {
 	private EditText     updateTickText;
 	private Button       saveButton;
 	private Button		 qrscanButton;
+	private CheckBox     useNetLocCkbox;
+	private CheckBox     useGPSLocCkbox;
 	
 	public static void debug(Context ctx, String msg) {
 		Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show();
@@ -62,16 +67,22 @@ public class ProjectMapActivity extends Activity {
         updateTickText = (EditText)     findViewById(R.id.updateTickText);
         saveButton     = (Button)       findViewById(R.id.saveButton);
         qrscanButton   = (Button)       findViewById(R.id.qrscanButton);
+        useNetLocCkbox = (CheckBox)     findViewById(R.id.useNetworkLocation);
+        useGPSLocCkbox = (CheckBox)     findViewById(R.id.useGPSLocation);
         
         // restore preferences
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         serverUrl  = settings.getString("serverUrl", "");
         user       = settings.getString("user", "");
         updateTick = settings.getInt("updateTick", 300);
+        useNetLocation = settings.getBoolean("useNetLocation", true);
+        useGPSLocation = settings.getBoolean("useGPSLocation", true);
         
         serverText.setText(serverUrl);
         userText.setText(user);
         updateTickText.setText(String.format("%d", updateTick));
+        useNetLocCkbox.setChecked(useNetLocation);
+        useGPSLocCkbox.setChecked(useGPSLocation);
         
         saveButton.setOnClickListener(mCorkyListener); // TODO
         qrscanButton.setOnClickListener(qrsbListener);
@@ -137,17 +148,38 @@ public class ProjectMapActivity extends Activity {
             serverUrl  = serverText.getText().toString().trim();
             user       = userText.getText().toString().trim();
             updateTick = Integer.parseInt(updateTickText.getText().toString());
-            // TODO: check values
-        	
+            useNetLocation = useNetLocCkbox.isChecked();
+            useGPSLocation = useGPSLocCkbox.isChecked();
+
+            if ((useNetLocation == false) && (useGPSLocation == false)) {
+                // At least one of the two needs to be enabled.
+                Toast.makeText(ProjectMapActivity.this,
+                               R.string.errormsg_needalocationsource,
+                               Toast.LENGTH_LONG).show();
+                return;
+            }
+            if ((!serverUrl.startsWith("http://"))
+             && (!serverUrl.startsWith("https://"))) {
+                Toast.makeText(ProjectMapActivity.this,
+                               R.string.errormsg_invalidurl_nohttp,
+                               Toast.LENGTH_LONG).show();
+                return;
+            }
+            // TODO: (sanity) check more values
+
             SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
             SharedPreferences.Editor editor = settings.edit();
             editor.putString("serverUrl", serverUrl);
             editor.putString("user", user);
             editor.putInt("updateTick", updateTick);
+            editor.putBoolean("useNetLocation", useNetLocation);
+            editor.putBoolean("useGPSLocation", useGPSLocation);
             editor.commit();
             
             //setupButtons();
-            Toast.makeText(ProjectMapActivity.this, "Settings saved.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ProjectMapActivity.this,
+                           R.string.toastmsg_settings_saved,
+                           Toast.LENGTH_SHORT).show();
         }
     };
 
