@@ -25,4 +25,10 @@
     <string name="errormsg_needalocationsource">ERROR: You need to enable at least one of the Network/GPS location checkboxes</string>
     <string name="errormsg_invalidurl_nohttp">ERROR: URL needs to start with http:// or https://</string>
     <string name="toastmsg_settings_saved">Settings saved.</string>
+    <string name="gpsupdreqtext">Request GPS Updates</string>
+    <string-array name="gpsupdreqfs">
+    <item>Twice per Update Tick</item>
+    <item>Once per Update Tick</item>
+    <item>Always</item>
+    </string-array>
 </resources>

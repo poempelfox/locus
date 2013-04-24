@@ -84,6 +84,18 @@
             android:layout_height="wrap_content"
             android:text="@string/useGPSLocationLabel" />
 
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/gpsupdreqtext" />
+
+        <Spinner
+            android:id="@+id/gpsreqrate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/gpsupdreqfs" />
+
         <Button
             android:id="@+id/qrscanButton"
             android:layout_width="match_parent"

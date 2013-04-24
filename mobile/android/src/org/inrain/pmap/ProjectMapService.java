@@ -54,6 +54,7 @@ public class ProjectMapService extends Service {
     private int     updateTick;
     private boolean useNetLocation;
     private boolean useGPSLocation;
+    private int     gpsReqRate;
     
     private LocationManager     locationManager;
     private WifiManager         wifiManager;
@@ -87,6 +88,7 @@ public class ProjectMapService extends Service {
         updateTick = settings.getInt("updateTick", 300);
         useNetLocation = settings.getBoolean("useNetLocation", true);
         useGPSLocation = settings.getBoolean("useGPSLocation", true);
+        gpsReqRate     = settings.getInt("gpsReqRate", 0);
         
         Intent notificationIntent = new Intent(this, LocusActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -130,8 +132,17 @@ public class ProjectMapService extends Service {
         if (useGPSLocation) {
             // For GPS do not request too many updates - will drain battery in no time.
             // Twice in every update interval should be enough.
+            int gpsupdates = updateTick * 1000 / 2;
+            // But this default can be overriden by setting
+            if (gpsReqRate == 1) { // just once per update tick
+                gpsupdates = updateTick * 1000;
+            }
+            if (gpsReqRate == 2) { // get as many updates as possible
+                gpsupdates = 0;
+            }
+            //Log.d("locus", "gpsupdates: " + gpsupdates);
             locationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER, updateTick * 1000 / 2, 0, locationListener);
+                LocationManager.GPS_PROVIDER, gpsupdates, 0, locationListener);
         }
         
         // we should not be killed (foreground)
